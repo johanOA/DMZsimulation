@@ -2,17 +2,30 @@ version: '3.7'
 services:
   db:
     build: 
-      context: ./BACK/
+      context: ./DB/
       dockerfile: dockerfile
     restart: always
     ports:
-      - 13306::3306
+      - 3307:3306
     networks:
       - my-network
     environment:
       MYSQL_DATABASE: userdb
       MYSQL_USER: usermy
+      MYSQL_ROOT_PASSWORD: usermy
       MYSQL_PASSWORD: usermy
-      MYSQL_ROOTPASS: usermy
+  back:
+    build: 
+      context: ./BACK/
+      dockerfile: dockerfile
+    restart: always
+    ports:
+      - 9000:9000
+    networks:
+      - my-network
+    environment:
+      DB_URL: jdbc:mysql://db:3306/userdb?createDatabaseIfNotExist=true
+      DB_USERNAME: root
+      DB_PASSWORD: usermy
 networks:
   my-network:
