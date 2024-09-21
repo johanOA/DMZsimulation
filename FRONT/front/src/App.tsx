@@ -61,7 +61,7 @@ function App() {
 
   // Función para almacenar la llave pública en la base de datos
   const storePublicKeyInDatabase = async (publicKeyPem: string) => {
-    await fetch("http://localhost:3000/api/storePublicKey", {
+    await fetch("http://localhost:4000/api/storePublicKey", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
