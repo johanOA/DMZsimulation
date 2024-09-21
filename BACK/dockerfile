@@ -1,0 +1,33 @@
+FROM gradle:8.0-jdk17-alpine AS build
+
+#directorio de trabajo en
+WORKDIR /BACK/documentsSignature 
+
+# Copia el código fuente y los archivos de configuración de Gradle
+COPY /documentsSignature/src ./src
+COPY /documentsSignature/buil.gradle .
+COPY /documentsSignature/settings.gradle .
+COPY /documentsSignature/gradle ./gradle
+
+#Contruccion del Archivo JAR
+RUN gradle clean build -x test
+
+#lista build/libs
+RUN ls -l build/libs
+
+#Ejecutar la app
+FROM openjdk:17-jdk-alpine
+
+#Usuario y grupo para la ejecucion de la app
+RUN addgroup -S spring && adduser -S spring -G spring
+
+#Usuario que ejecuta la APP
+USER spring:spring
+
+#Establece JAR_FILE para el doc JAR
+ARG JAR_FILE=/BACK/documentsSignature/build/libs/*.jar
+
+#Copia el JAR generado
+COPY --from=build $JAR_FILE app.jar
+
+ENTRYPOINT [ "java", "-jar", "/app.jar" ]
