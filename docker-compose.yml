@@ -1,0 +1,18 @@
+version: '3.7'
+services:
+  db:
+    build: 
+      #context: ./BACK/
+      dockerfile: /DB/dockerfile
+    restart: always
+    ports:
+      - 13306:3306
+    networks:
+      - my-network
+    environment:
+      MYSQL_DATABASE: userdb
+      MYSQL_USER: usermy
+      MYSQL_PASSWORD: usermy
+      MYSQL_ROOT_PASSWORD : usermy
+networks:
+  my-network:

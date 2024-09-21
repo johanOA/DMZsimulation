@@ -1,11 +1,11 @@
 FROM gradle:8.0-jdk17-alpine AS build
 
 #directorio de trabajo en
-WORKDIR /BACK/documentsSignature 
+WORKDIR /BACK/documentsSignature
 
 # Copia el código fuente y los archivos de configuración de Gradle
 COPY /documentsSignature/src ./src
-COPY /documentsSignature/buil.gradle .
+COPY /documentsSignature/build.gradle .
 COPY /documentsSignature/settings.gradle .
 COPY /documentsSignature/gradle ./gradle
 
