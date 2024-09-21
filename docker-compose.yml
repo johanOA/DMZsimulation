@@ -1,18 +1,23 @@
-version: '3.7'
+name: docSignature
+
 services:
   db:
     build: 
-      context: ./BACK/
+      context: ./DB/
       dockerfile: dockerfile
     restart: always
     ports:
-      - 13306::3306
+      - 13306:3306
     networks:
       - my-network
     environment:
       MYSQL_DATABASE: userdb
       MYSQL_USER: usermy
       MYSQL_PASSWORD: usermy
-      MYSQL_ROOTPASS: usermy
+      MYSQL_ROOT_PASSWORD: usermy
+  
+  firewall:
+    build: 
+      context: firewall
 networks:
   my-network:
