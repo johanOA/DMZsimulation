@@ -1,0 +1,14 @@
+FROM debian:latest
+
+#Actualizar
+RUN apt-get update && apt-get upgrade -y
+
+#Intalar iptables
+RUN apt-get install -y iptables iproute2
+
+##RESTO DE CONFIGURACIONES LUEGO
+
+#Puertos para manejar el firewall
+EXPOSE 80 443
+
+CMD [ "tail", "-f", "/dev/null" ]

@@ -1,0 +1,29 @@
+FROM node:20.12.2-alpine AS buil
+
+#Directorio de trabajo
+WORKDIR /FRONT
+
+# Copia los json 
+COPY package*.json ./
+
+#Instalacion de dependecias
+RUN npm install
+
+#copia todo el codigo
+COPY . .
+
+#Contruye el proyecto 
+RUN npm run buil
+
+# Etapa 2: Configuración del servidor para servir la aplicación
+# Utiliza una imagen base de Nginx para servir la aplicación estática
+
+FROM nginx:stable-alpine
+
+#copia los archivos estaticos de la etapa anterior al directori de Nginx
+COPY --from=buil /app/build /usr/share/nginx/html
+
+EXPOSE 81
+
+#Inicia el servidor de Nginx
+CMD [ "nginx", "-g", "daemon off;" ]
