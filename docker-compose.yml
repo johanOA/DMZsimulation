@@ -1,10 +1,10 @@
-name: docSignature
+name: docsignature
 
 services:
   db:
     build: 
-      context: ./DB/
-      dockerfile: dockerfile
+      #context: ./DB/
+      dockerfile: /DB/dockerfile
     restart: always
     ports:
       - 13306:3306
@@ -16,8 +16,8 @@ services:
       MYSQL_PASSWORD: usermy
       MYSQL_ROOT_PASSWORD: usermy
   
-  firewall:
-    build: 
-      context: firewall
+#  firewall:
+#    build: 
+#      context: firewall
 networks:
   my-network:

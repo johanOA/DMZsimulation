@@ -1,8 +1,9 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { UserCredential } from "../App";
 
 interface GenerateKeysProps {
-  userCredential: {};
+  userCredential: UserCredential | undefined
 }
 
 export const GenerateKeys = ({ userCredential }: GenerateKeysProps) => {
@@ -12,7 +13,7 @@ export const GenerateKeys = ({ userCredential }: GenerateKeysProps) => {
     console.log(userCredential); // Verifica el contenido
 
     // Redirigir si no hay credenciales
-    if (!userCredential || !('credential' in userCredential)) {
+    if (!userCredential || !('id' in userCredential)) {
       navigate("/");
     }
   }, [userCredential, navigate]);
@@ -101,7 +102,7 @@ export const GenerateKeys = ({ userCredential }: GenerateKeysProps) => {
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({ publicKey: publicKeyPem }),
+      body: JSON.stringify({ publicKey: publicKeyPem, alias: userCredential?.id }),
     });
   };
 

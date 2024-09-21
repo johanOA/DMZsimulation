@@ -4,8 +4,14 @@ import { Login } from "./components/Login";
 import { GoogleOAuthProvider } from "@react-oauth/google";
 import { useState } from "react";
 
+export interface UserCredential {
+  id: string; // o sub
+  accessToken: string;
+  // Otras propiedades según necesites
+}
+
 function App() {
-  const [userCredential, setUserCredential] = useState({});
+  const [userCredential, setUserCredential] = useState<UserCredential>();
   return (
     <GoogleOAuthProvider clientId="688555993389-5dn064omerjdqrjkf9c6knl97d4miq9i.apps.googleusercontent.com">
       <BrowserRouter>
