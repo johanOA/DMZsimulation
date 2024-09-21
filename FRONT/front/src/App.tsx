@@ -2,6 +2,11 @@ import { useState } from "react";
 
 function App() {
   const [publicKey, setPublicKey] = useState<string>("");
+  const [privateKey, setPrivateKey] = useState<CryptoKey | null>(null);
+  const [publicKeyObject, setPublicKeyObject] = useState<CryptoKey | null>(null); // Almacena la clave pública
+  const [message, setMessage] = useState<string>("");
+  const [encryptedMessage, setEncryptedMessage] = useState<string>("");
+  const [decryptedMessage, setDecryptedMessage] = useState<string>("");
 
   // Función para generar el par de llaves RSA
   const generateKeyPair = async () => {
@@ -13,7 +18,7 @@ function App() {
         hash: "SHA-256",
       },
       true,
-      ["encrypt", "decrypt"]
+      ["encrypt", "decrypt"] // Permisos para las operaciones de cifrado y descifrado
     );
 
     // Exportar la llave pública
@@ -36,8 +41,10 @@ function App() {
       "PRIVATE KEY"
     );
 
-    // Guardar la llave pública en el estado
+    // Guardar la llave pública y privada en el estado
     setPublicKey(publicKeyPem);
+    setPrivateKey(keyPair.privateKey);
+    setPublicKeyObject(keyPair.publicKey); // Guardar la clave pública en un objeto
 
     // Descargar la llave privada directamente después de generarla
     downloadPrivateKey(privateKeyPem);
@@ -47,10 +54,7 @@ function App() {
   };
 
   // Función para convertir ArrayBuffer a formato PEM
-  const convertArrayBufferToPem = (
-    buffer: ArrayBuffer,
-    type: string
-  ): string => {
+  const convertArrayBufferToPem = (buffer: ArrayBuffer, type: string): string => {
     const binary = String.fromCharCode(...new Uint8Array(buffer));
     const base64 = window.btoa(binary);
     const pem = `-----BEGIN ${type}-----\n${base64
@@ -61,7 +65,7 @@ function App() {
 
   // Función para almacenar la llave pública en la base de datos
   const storePublicKeyInDatabase = async (publicKeyPem: string) => {
-    await fetch("http://localhost:3000/api/storePublicKey", {
+    await fetch("http://localhost:4000/api/storePublicKey", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -80,6 +84,48 @@ function App() {
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
+  };
+
+  // Función para encriptar el mensaje con la llave pública
+  const encryptMessage = async () => {
+    if (!publicKeyObject) return;
+
+    const encoder = new TextEncoder();
+    const encodedMessage = encoder.encode(message);
+
+    // Encriptar el mensaje con la clave pública
+    const encryptedData = await window.crypto.subtle.encrypt(
+      { name: "RSA-OAEP" },
+      publicKeyObject,
+      encodedMessage
+    );
+
+    // Convertir a Base64 para mostrar el mensaje cifrado
+    const encryptedBase64 = window.btoa(
+      String.fromCharCode(...new Uint8Array(encryptedData))
+    );
+    setEncryptedMessage(encryptedBase64);
+  };
+
+  // Función para desencriptar el mensaje con la llave privada
+  const decryptMessage = async () => {
+    if (!privateKey) return;
+
+    const encryptedData = Uint8Array.from(
+      atob(encryptedMessage),
+      (c) => c.charCodeAt(0)
+    );
+
+    // Desencriptar el mensaje con la clave privada
+    const decryptedData = await window.crypto.subtle.decrypt(
+      { name: "RSA-OAEP" },
+      privateKey,
+      encryptedData
+    );
+
+    const decoder = new TextDecoder();
+    const decryptedText = decoder.decode(decryptedData);
+    setDecryptedMessage(decryptedText);
   };
 
   return (
@@ -103,6 +149,43 @@ function App() {
           readOnly
           value={publicKey}
         />
+   {/*      <h2 className="text-center text-2xl mt-6 font-semibold">
+          Mensaje
+        </h2>
+        <textarea
+          className="border-2 rounded-md mx-auto block w-[700px] h-20 mt-5 resize-none text-black"
+          placeholder="Escribe tu mensaje aquí"
+          value={message}
+          onChange={(e) => setMessage(e.target.value)}
+        />
+        <button
+          onClick={encryptMessage}
+          className="p-2 bg-sky-600 rounded-md text-white mx-auto block mt-5 px-5 font-semibold transition-all ease-linear hover:bg-sky-500"
+        >
+          Encriptar Mensaje
+        </button>
+        <h2 className="text-center text-2xl mt-6 font-semibold">
+          Mensaje Encriptado
+        </h2>
+        <textarea
+          className="border-2 rounded-md mx-auto block w-[700px] h-40 mt-5 resize-none text-black"
+          readOnly
+          value={encryptedMessage}
+        />
+        <button
+          onClick={decryptMessage}
+          className="p-2 bg-sky-600 rounded-md text-white mx-auto block mt-5 px-5 font-semibold transition-all ease-linear hover:bg-sky-500"
+        >
+          Desencriptar Mensaje
+        </button>
+        <h2 className="text-center text-2xl mt-6 font-semibold">
+          Mensaje Desencriptado
+        </h2>
+        <textarea
+          className="border-2 rounded-md mx-auto block w-[700px] h-20 mt-5 resize-none text-black"
+          readOnly
+          value={decryptedMessage}
+        /> */}
       </main>
       <button
         onClick={() => {
