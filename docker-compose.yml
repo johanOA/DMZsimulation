@@ -2,11 +2,11 @@ version: '3.7'
 services:
   db:
     build: 
-      context: ./DB/
-      dockerfile: dockerfile
+      #context: ./BACK/
+      dockerfile: /DB/dockerfile
     restart: always
     ports:
-      - 3307:3306
+      - 13306:3306
     networks:
       - my-network
     environment:
