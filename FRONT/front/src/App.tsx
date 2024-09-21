@@ -87,7 +87,7 @@ function App() {
   };
 
   // Función para encriptar el mensaje con la llave pública
-  const encryptMessage = async () => {
+  /* const encryptMessage = async () => {
     if (!publicKeyObject) return;
 
     const encoder = new TextEncoder();
@@ -105,10 +105,10 @@ function App() {
       String.fromCharCode(...new Uint8Array(encryptedData))
     );
     setEncryptedMessage(encryptedBase64);
-  };
+  }; */
 
   // Función para desencriptar el mensaje con la llave privada
-  const decryptMessage = async () => {
+  /* const decryptMessage = async () => {
     if (!privateKey) return;
 
     const encryptedData = Uint8Array.from(
@@ -126,7 +126,7 @@ function App() {
     const decoder = new TextDecoder();
     const decryptedText = decoder.decode(decryptedData);
     setDecryptedMessage(decryptedText);
-  };
+  }; */
 
   return (
     <>
