@@ -1,9 +1,9 @@
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { UserCredential } from "../App";
 
 interface GenerateKeysProps {
-  userCredential: UserCredential | undefined
+  userCredential: UserCredential | undefined;
 }
 
 export const GenerateKeys = ({ userCredential }: GenerateKeysProps) => {
@@ -13,10 +13,10 @@ export const GenerateKeys = ({ userCredential }: GenerateKeysProps) => {
     console.log(userCredential); // Verifica el contenido
 
     // Redirigir si no hay credenciales
-    if (!userCredential || !('id' in userCredential)) {
+    if (!userCredential || !("id" in userCredential!)) {
       navigate("/");
     }
-  }, [userCredential, navigate]);
+  }, [userCredential]);
 
   const [publicKey, setPublicKey] = useState<string>("");
   const [privateKey, setPrivateKey] = useState<CryptoKey | null>(null);
@@ -102,7 +102,10 @@ export const GenerateKeys = ({ userCredential }: GenerateKeysProps) => {
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({ publicKey: publicKeyPem, alias: userCredential?.id }),
+      body: JSON.stringify({
+        publicKey: publicKeyPem,
+        alias: userCredential?.id,
+      }),
     });
   };
 
@@ -161,11 +164,25 @@ export const GenerateKeys = ({ userCredential }: GenerateKeysProps) => {
   return (
     <>
       <div className="bg-slate-900">
-        <nav className="p-3 shadow-md border-b border-gray-600">
+        <nav className="p-3 shadow-md border-b border-gray-600 flex items-center justify-between">
           <h1 className="font-bold text-2xl">
             Generador de llaves{" "}
             <span className="text-sky-400">Pública y Privada</span>
           </h1>
+          <div className="flex gap-3 font-semibold text-lg">
+            <Link
+              className="hover:text-sky-400 transition-colors"
+              to={"/file-sign"}
+            >
+              Firmar archivos
+            </Link>
+            <Link
+              className="hover:text-sky-400 transition-colors"
+              to={"/generate"}
+            >
+              Generar llaves
+            </Link>
+          </div>
         </nav>
       </div>
       <main className="w-full">

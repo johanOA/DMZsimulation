@@ -3,6 +3,7 @@ import { GenerateKeys } from "./components/GenerateKeys";
 import { Login } from "./components/Login";
 import { GoogleOAuthProvider } from "@react-oauth/google";
 import { useState } from "react";
+import { FileSign } from "./components/FileSign";
 
 export interface UserCredential {
   id: string; // o sub
@@ -19,6 +20,7 @@ function App() {
           {/* Rutas de la sección de autenticación */}
           <Route path="/" element={<Login setUserCredential={setUserCredential} />} />
           <Route path="/generate" element={<GenerateKeys userCredential={userCredential} />} />
+          <Route path="/file-sign" element={<FileSign userCredential={userCredential} />} />
         </Routes>
       </BrowserRouter>
     </GoogleOAuthProvider>
