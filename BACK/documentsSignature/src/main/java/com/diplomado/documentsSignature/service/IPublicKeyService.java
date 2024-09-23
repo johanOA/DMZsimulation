@@ -11,4 +11,6 @@ public interface IPublicKeyService {
     List<PublicKey> findAll();
 
     PublicKey savePublicKey(PublicKey key);
+
+    PublicKey fingGeneratedKey(String alias);
 }

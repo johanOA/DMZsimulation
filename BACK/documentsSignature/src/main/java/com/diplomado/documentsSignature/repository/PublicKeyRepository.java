@@ -6,4 +6,6 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public interface PublicKeyRepository extends JpaRepository<PublicKey,Long> {
+
+    PublicKey findByAlias(String alias);
 }
