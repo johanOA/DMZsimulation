@@ -10,6 +10,17 @@ CREATE TABLE public_KEY (
     key_value LONGTEXT NOT NULL
 );
 
+-- Crear tabla archivos
+CREATE TABLE archivos_firmados (
+    id INT AUTO_INCREMENT PRIMARY KEY,           -- ID único del archivo
+    nombre_archivo VARCHAR(255) NOT NULL,        -- Nombre del archivo
+    tamano INT NOT NULL,                          -- Tamaño del archivo en bytes
+    tipo_contenido VARCHAR(50) NOT NULL,         -- Tipo MIME del archivo (por ejemplo, 'application/pdf')
+    archivo LONGBLOB NOT NULL,                   -- Contenido del archivo almacenado como un BLOB
+    fecha_creacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP -- Fecha de creación del registro
+);
+
+
 -- Inserciones de prueba para public_KEY
 INSERT INTO public_KEY (id, alias, key_value) VALUES 
 (1, '106150899574720315928', 'MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA8u0tRtDvInIbI6Az8v5WO/+fVihgNypka+Q3Xkl8nkBQowjXiHpOT+vGGbGa+YUs1Tftgni6PP8Sy2NPePE4gWEF8EDNAuyBvMJHO2Q6iiHZ1Yp/zJnpy15JWcuEWl59Xd1wQHdhmI26IpzInFvRmuCI6rfIF2aL7VjgMlbg/0z/kviLySjJzO5mlGppmLllk4JSyCwjuC4fb+y43cGOyZGORnFyiUhmleRP9tEHrsv0VXDX6hBWPIbp6XmlLJEWEF5O3Dp4VqNS5dk+zU+JUINxG08bY8Ak2WyvRkmCaHnz8yll2Cz6r2DUpgUaHfJxohRWgrMLX/DAeoUP3tyBLQIDAQAB'),

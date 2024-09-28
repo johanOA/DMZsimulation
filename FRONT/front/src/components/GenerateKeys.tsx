@@ -10,7 +10,6 @@ export const GenerateKeys = ({ userCredential }: GenerateKeysProps) => {
   const navigate = useNavigate(); // Inicializa el hook para navegación
 
   useEffect(() => {
-    console.log(userCredential); // Verifica el contenido
 
     // Redirigir si no hay credenciales
     if (!userCredential || !("id" in userCredential!)) {
@@ -27,7 +26,8 @@ export const GenerateKeys = ({ userCredential }: GenerateKeysProps) => {
   const [encryptedMessage, setEncryptedMessage] = useState<string>("");
   const [decryptedMessage, setDecryptedMessage] = useState<string>("");
 
-  console.log(userCredential);
+  console.log(decryptedMessage)
+  console.log(setMessage)
 
   // Función para generar el par de llaves RSA
   const generateKeyPair = async () => {
@@ -140,11 +140,13 @@ export const GenerateKeys = ({ userCredential }: GenerateKeysProps) => {
       String.fromCharCode(...new Uint8Array(encryptedData))
     );
     setEncryptedMessage(encryptedBase64);
+    encryptMessage()
   };
 
   // Función para desencriptar el mensaje con la llave privada
   const decryptMessage = async () => {
     if (!privateKey) return;
+    decryptMessage()
 
     const encryptedData = Uint8Array.from(atob(encryptedMessage), (c) =>
       c.charCodeAt(0)
