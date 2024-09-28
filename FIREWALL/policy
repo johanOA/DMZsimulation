@@ -1,0 +1,5 @@
+#SOURCE   DEST       POLICY     LOG LEVEL
+loc       net        ACCEPT
+net       all        DROP       info
+fw        all        ACCEPT
+loc       fw         ACCEPT     

@@ -1,0 +1,35 @@
+#ACTION         SOURCE      DEST            PROTO   DEST PORT(S)
+#INVALID DROP es muy ultil para evitar un ping killer
+Invalid(DROP)   net         $FW             tcp
+#NTP
+NTP(ACCEPT)     $FW         all
+NTP(ACCEPT)     loc         all
+#PING
+DROP            net         $FW             icmp
+ACCEPT          $FW         all             icmp
+ACCEPT          $FW         net             icmp
+#SSH
+SSH(ACCEPT)     $FW         all
+SSH(ACCEPT)     net         $FW
+Web(ACCEPT)     $FW         all
+Web(ACCEPT)     loc         all
+Web(ACCEPT)     $FW         net
+Web(ACCEPT)     loc         all
+Web(ACCEPT)     loc         net
+Web(ACCEPT)     net         $FW
+Web(ACCEPT)     net         loc             tcp     80,443       # Aceptar tráfico de la red externa a la red local
+
+
+DNS(ACCEPT)     net         $FW
+DNS(ACCEPT)     net         loc
+DNS(ACCEPT)     $FW         all
+DNS(ACCEPT)     $FW         net
+DNS(ACCEPT)     loc         all
+DNS(ACCEPT)     loc         $FW
+#ACTION         SOURCE      DEST            PROTO   DPORT       SPORT      ORIGDEST     PUBLIC IPv4
+#DNAT            net         loc:10.18.0.15  udp     53          -          121.0.0.1
+#DNAT            net         loc:10.18.0.15  tcp     53,80,81    -          121.0.0.1
+DNAT            net         loc:10.0.10.11  tcp     80           -          172.168.10.10
+DNAT            net         loc:10.0.10.11  tcp     80           -          10.0.10.10
+ACCEPT          loc         net             tcp     22,80,443
+DROP            net         all             tcp     135,139

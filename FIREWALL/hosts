@@ -1,0 +1,3 @@
+#ZONE    HOST(S)   
+#net      eth0:172.168.10.0/24        # Red externa 
+#loc      eth1:10.0.10.0/24           # Red interna

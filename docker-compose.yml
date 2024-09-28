@@ -1,23 +1,29 @@
-name: docSignature
+name: docsignature
 
 services:
-  db:
-    build: 
-      context: ./DB/
-      dockerfile: dockerfile
-    restart: always
+
+  web:
+    image: debian:latest  
+    container_name: http
     ports:
-      - 13306:3306
+      - "8070:80"
+    volumes:
+      - ./html:/var/www/html  
     networks:
-      - my-network
-    environment:
-      MYSQL_DATABASE: userdb
-      MYSQL_USER: usermy
-      MYSQL_PASSWORD: usermy
-      MYSQL_ROOT_PASSWORD: usermy
-  
-  firewall:
-    build: 
-      context: firewall
+      net_internal:
+        ipv4_address: 10.0.10.11
+    command: >
+      bash -c "apt-get update &&
+               apt-get install -y apache2 &&
+               apache2ctl -D FOREGROUND"      
 networks:
-  my-network:
+  net_external:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.168.10.0/24
+  net_internal:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 10.0.10.0/24  # Segmento de red para la red interna

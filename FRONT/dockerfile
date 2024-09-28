@@ -1,29 +1,24 @@
-FROM node:20.12.2-alpine AS buil
+FROM debian:latest
 
+USER root
 #Directorio de trabajo
 WORKDIR /FRONT
+# Copia el front
+COPY /back /FRONT/front
+#Copia el back
+COPY /front /FRONT/back
 
-# Copia los json 
-COPY package*.json ./
+#Actualiza la paquetera e instala las herramientas necesarias
+RUN apt-get update -y && apt-get install -y \
+    iproute2 \
+    net-tools \
+    curl 
 
-#Instalacion de dependecias
-RUN npm install
+#Instalacion de nodejs
+RUN apt-get install nodejs npm -y
 
-#copia todo el codigo
-COPY . .
+#Copia es script para las configuraciones
+COPY config.sh /FRONT/
 
-#Contruye el proyecto 
-RUN npm run buil
-
-# Etapa 2: Configuración del servidor para servir la aplicación
-# Utiliza una imagen base de Nginx para servir la aplicación estática
-
-FROM nginx:stable-alpine
-
-#copia los archivos estaticos de la etapa anterior al directori de Nginx
-COPY --from=buil /app/build /usr/share/nginx/html
-
-EXPOSE 81
-
-#Inicia el servidor de Nginx
-CMD [ "nginx", "-g", "daemon off;" ]
+#Le da permisos para ejecutarse
+RUN chmod +x /FRONT/config.sh

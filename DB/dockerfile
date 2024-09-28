@@ -2,7 +2,7 @@
 FROM mysql:latest
 
 # Copia el archivo .sql al contenedor
-COPY /DB/data.sql /docker-entrypoint-initdb.d/
+COPY data.sql /docker-entrypoint-initdb.d/
 
 # Otorga permisos al archivo .sql
 RUN chown mysql:mysql /docker-entrypoint-initdb.d/data.sql

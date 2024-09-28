@@ -1,14 +1,46 @@
 FROM debian:latest
 
-#Actualizar
-RUN apt-get update && apt-get upgrade -y
+# Instalar tini y iptables, además de herramientas de red
+RUN apt-get update 
 
-#Intalar iptables
-RUN apt-get install -y iptables iproute2
+# Instalar iptables
+RUN apt-get install -y iptables
 
-##RESTO DE CONFIGURACIONES LUEGO
+# Instalar para ping(Es util)
+RUN apt-get install iputils-ping -y
 
-#Puertos para manejar el firewall
+#framework para el firewall
+RUN apt install shorewall -y
+
+
+
+# Copiar archivos de configuración personalizados
+COPY zones /etc/shorewall/zones
+COPY interfaces /etc/shorewall/interfaces
+COPY policy /etc/shorewall/policy
+COPY rules /etc/shorewall/rules
+COPY snat /etc/shorewall/snat
+COPY hosts /etc/shorewall/hosts
+
+
+#Inicia shorewall
+#RUN shorewall start
+
+# Habilitar el inicio automático de Shorewall en el contenedor
+RUN echo "startup=1" > /etc/default/shorewall
+
+
+# Exponer los puertos que sean necesarios para el firewall
 EXPOSE 80 443
 
-CMD [ "tail", "-f", "/dev/null" ]
+# Iniciar Shorewall al iniciar el contenedor
+CMD ["shorewall", "start"]
+#ADD config_firewall.sh /bin
+#RUN chmod +x /bin/config_firewall.sh
+
+#ENV CHAIN "DOCKER-FIREWALL"
+#ENV OPEN_PORTS "22, 443, 80"
+#ENV ACCEPT_ALL_FROM ""
+
+#ENTRYPOINT ["/sbin/tini", "--"]
+#CMD ["/bin/config_firewall.sh"]

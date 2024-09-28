@@ -1,0 +1,32 @@
+name: firewall_debian
+
+services:
+  firewall_debian:
+    build: 
+      context: ./FIREWALL/
+      dockerfile: dockerfile
+    container_name: firewall_debian
+    ports:
+      - "180:80"
+    cap_add:
+      - NET_ADMIN
+    privileged: true
+    tty: true
+    command: tail -f /dev/null
+    networks:
+      net_external:
+        ipv4_address: 172.168.10.10  # Dirección IP en la red externa
+      net_internal:
+        ipv4_address: 10.0.10.10     # Dirección IP en la red interna
+
+networks:
+  net_external:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.168.10.0/24
+  net_internal:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 10.0.10.0/24  # Segmento de red para la red interna
