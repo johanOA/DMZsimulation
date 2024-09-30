@@ -1,7 +1,4 @@
-name: front_debian
-
 services:
-
   front_debian:
     build: 
       dockerfile: dockerfile
@@ -13,12 +10,8 @@ services:
     privileged: true  
     networks:
       net_internal:
-        ipv4_address: 10.0.10.10  # Dirección IP en la red interna
+        ipv4_address: 10.0.10.11  # Dirección IP en la red interna
     entrypoint: /bin/bash -c "/FRONT/config.sh && tail -f /dev/null"
-
-networks:
+networks: 
   net_internal:
-    driver: bridge
-    ipam:
-      config:
-        - subnet: 10.0.10.0/24 
+    external: true

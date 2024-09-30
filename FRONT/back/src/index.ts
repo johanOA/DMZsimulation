@@ -25,11 +25,11 @@ const upload = multer({ storage: storage }); // Configuración del middleware
 
 // Configura la conexión a MySQL
 const db = mysql.createConnection({
-  host: "localhost",
-  user: "usermy",
+  host: "10.0.10.12",
+  user: "root",
   password: "usermy",
   database: "userdb",
-  port: 13306,
+  port: 3306,
 });
 
 declare global {

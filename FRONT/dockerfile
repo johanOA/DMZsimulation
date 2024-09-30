@@ -4,21 +4,32 @@ USER root
 #Directorio de trabajo
 WORKDIR /FRONT
 # Copia el front
-COPY /back /FRONT/front
+COPY /back /FRONT/back
 #Copia el back
-COPY /front /FRONT/back
+COPY /front /FRONT/front
 
 #Actualiza la paquetera e instala las herramientas necesarias
 RUN apt-get update -y && apt-get install -y \
     iproute2 \
     net-tools \
-    curl 
+    curl \
+    iputils-ping
 
 #Instalacion de nodejs
 RUN apt-get install nodejs npm -y
+
+# Instala las dependencias del back-end
+WORKDIR /FRONT/back
+RUN npm install
+
+# Instala las dependencias del front-end
+WORKDIR /FRONT/front
+RUN npm install
 
 #Copia es script para las configuraciones
 COPY config.sh /FRONT/
 
 #Le da permisos para ejecutarse
 RUN chmod +x /FRONT/config.sh
+
+EXPOSE 5173

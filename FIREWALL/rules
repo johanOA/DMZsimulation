@@ -1,6 +1,10 @@
 #ACTION         SOURCE      DEST            PROTO   DEST PORT(S)
 #INVALID DROP es muy ultil para evitar un ping killer
 Invalid(DROP)   net         $FW             tcp
+# Permitir tráfico en el puerto 5173
+ACCEPT          net         $FW             tcp     5173
+# Aceptar tráfico web (puertos 80 y 443)
+Web(ACCEPT)     net         $FW             tcp     80,443
 #NTP
 NTP(ACCEPT)     $FW         all
 NTP(ACCEPT)     loc         all
@@ -29,7 +33,7 @@ DNS(ACCEPT)     loc         $FW
 #ACTION         SOURCE      DEST            PROTO   DPORT       SPORT      ORIGDEST     PUBLIC IPv4
 #DNAT            net         loc:10.18.0.15  udp     53          -          121.0.0.1
 #DNAT            net         loc:10.18.0.15  tcp     53,80,81    -          121.0.0.1
-DNAT            net         loc:10.0.10.11  tcp     80           -          172.168.10.10
-DNAT            net         loc:10.0.10.11  tcp     80           -          10.0.10.10
+DNAT            net         loc:10.0.10.11  tcp     5173,80,81         -          172.168.10.10
+DNAT            net         loc:10.0.10.11  tcp     5173,80,81         -          10.0.10.10
 ACCEPT          loc         net             tcp     22,80,443
 DROP            net         all             tcp     135,139
