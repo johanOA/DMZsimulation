@@ -4,7 +4,6 @@ services:
 
   db:
     build: 
-      context: ./DB/
       dockerfile: dockerfile
     container_name: database
     restart: always
@@ -12,21 +11,13 @@ services:
       - "13306:3306"
     networks:
       net_internal:
-        ipv4_address: 10.0.10.2 # Solo red interna
+        ipv4_address: 10.0.10.12 # Solo red interna
     environment:
       MYSQL_DATABASE: userdb
       MYSQL_USER: usermy
       MYSQL_PASSWORD: usermy
       MYSQL_ROOT_PASSWORD: usermy
 
-networks:
-  net_external:
-    driver: bridge
-    ipam:
-      config:
-        - subnet: 172.168.10.0/24
+networks: 
   net_internal:
-    driver: bridge
-    ipam:
-      config:
-        - subnet: 10.0.10.0/24
+    external: true

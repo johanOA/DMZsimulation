@@ -9,3 +9,5 @@ RUN chown mysql:mysql /docker-entrypoint-initdb.d/data.sql
 
 # Si es necesario, cambia los permisos del archivo .sql para que sea legible por el usuario MySQL
 RUN chmod 644 /docker-entrypoint-initdb.d/data.sql
+
+EXPOSE 3306 
