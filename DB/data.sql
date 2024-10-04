@@ -3,6 +3,11 @@ USE userdb;
 -- Eliminar tablas si existen
 DROP TABLE IF EXISTS public_KEY;
 
+CREATE TABLE users (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  username VARCHAR(255) NOT NULL UNIQUE,
+);
+
 -- Crear tabla public_KEY
 CREATE TABLE public_KEY (
     id INT AUTO_INCREMENT PRIMARY KEY,
@@ -11,15 +16,23 @@ CREATE TABLE public_KEY (
 );
 
 -- Crear tabla archivos
-CREATE TABLE archivos_firmados (
+CREATE TABLE archivos_subidos (
     id INT AUTO_INCREMENT PRIMARY KEY,           -- ID único del archivo
     nombre_archivo VARCHAR(255) NOT NULL,        -- Nombre del archivo
-    tamano INT NOT NULL,                          -- Tamaño del archivo en bytes
+    tamano INT NOT NULL,                         -- Tamaño del archivo en bytes
     tipo_contenido VARCHAR(50) NOT NULL,         -- Tipo MIME del archivo (por ejemplo, 'application/pdf')
     archivo LONGBLOB NOT NULL,                   -- Contenido del archivo almacenado como un BLOB
+    hash_archivo VARCHAR(255) NOT NULL,           -- Hash del archivo (usar 64 caracteres para SHA-256)
     fecha_creacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP -- Fecha de creación del registro
 );
 
+CREATE TABLE archivos_firmados (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  alias VARCHAR(255) NOT NULL,
+  nombre_archivo VARCHAR(255) NOT NULL, 
+  signature TEXT NOT NULL,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
 
 -- Inserciones de prueba para public_KEY
 INSERT INTO public_KEY (id, alias, key_value) VALUES 
