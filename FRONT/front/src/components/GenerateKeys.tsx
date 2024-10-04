@@ -4,13 +4,16 @@ import { UserCredential } from "../App";
 
 interface GenerateKeysProps {
   userCredential: UserCredential | undefined;
+  setGlobalPublicKey: React.Dispatch<React.SetStateAction<string | undefined>>;
 }
 
-export const GenerateKeys = ({ userCredential }: GenerateKeysProps) => {
+export const GenerateKeys = ({
+  userCredential,
+  setGlobalPublicKey,
+}: GenerateKeysProps) => {
   const navigate = useNavigate(); // Inicializa el hook para navegación
 
   useEffect(() => {
-
     // Redirigir si no hay credenciales
     if (!userCredential || !("id" in userCredential!)) {
       navigate("/");
@@ -26,8 +29,8 @@ export const GenerateKeys = ({ userCredential }: GenerateKeysProps) => {
   const [encryptedMessage, setEncryptedMessage] = useState<string>("");
   const [decryptedMessage, setDecryptedMessage] = useState<string>("");
 
-  console.log(decryptedMessage)
-  console.log(setMessage)
+  console.log(decryptedMessage);
+  console.log(setMessage);
 
   // Función para generar el par de llaves RSA
   const generateKeyPair = async () => {
@@ -61,6 +64,8 @@ export const GenerateKeys = ({ userCredential }: GenerateKeysProps) => {
       exportedPrivateKey,
       "PRIVATE KEY"
     );
+
+    setGlobalPublicKey(publicKeyPem);
 
     const llave = arrayBufferToBase64(exportedPublicKey);
 
@@ -140,13 +145,13 @@ export const GenerateKeys = ({ userCredential }: GenerateKeysProps) => {
       String.fromCharCode(...new Uint8Array(encryptedData))
     );
     setEncryptedMessage(encryptedBase64);
-    encryptMessage()
+    encryptMessage();
   };
 
   // Función para desencriptar el mensaje con la llave privada
   const decryptMessage = async () => {
     if (!privateKey) return;
-    decryptMessage()
+    decryptMessage();
 
     const encryptedData = Uint8Array.from(atob(encryptedMessage), (c) =>
       c.charCodeAt(0)
@@ -165,21 +170,21 @@ export const GenerateKeys = ({ userCredential }: GenerateKeysProps) => {
   };
   return (
     <>
-      <div className="bg-slate-900">
+      <div className="bg-white">
         <nav className="p-3 shadow-md border-b border-gray-600 flex items-center justify-between">
           <h1 className="font-bold text-2xl">
-            Generador de llaves{" "}
-            <span className="text-sky-400">Pública y Privada</span>
+            Diplomado Infraestructura{" "}
+            <span className="text-indigo-600">Firma Digital</span>
           </h1>
           <div className="flex gap-3 font-semibold text-lg">
             <Link
-              className="hover:text-sky-400 transition-colors"
+              className="hover:text-indigo-600 transition-colors"
               to={"/file-sign"}
             >
               Firmar archivos
             </Link>
             <Link
-              className="hover:text-sky-400 transition-colors"
+              className="hover:text-indigo-600 transition-colors"
               to={"/generate"}
             >
               Generar llaves
@@ -240,7 +245,7 @@ export const GenerateKeys = ({ userCredential }: GenerateKeysProps) => {
         onClick={() => {
           generateKeyPair();
         }}
-        className="p-2 bg-sky-600 rounded-md text-white mx-auto block mt-5 px-5 font-semibold transition-all ease-linear hover:bg-sky-500"
+        className="p-2 bg-indigo-700 rounded-md text-white mx-auto block mt-5 px-5 font-semibold transition-all ease-linear hover:bg-indigo-500"
       >
         Generar par de llaves
       </button>
