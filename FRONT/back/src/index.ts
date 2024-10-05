@@ -87,39 +87,72 @@ app.get("/", (req: Request, res: Response) => {
 });
 
 app.post("/api/register", async (req: Request, res: Response) => {
-  const { email } = req.body;
+  const { email, user, pass } = req.body;
 
-  // Insertar el usuario en la base de datos
-  const query = `INSERT INTO users (username) VALUES (?)`;
-  db.query(query, [email], (err: any) => {
-    if (err) {
-      return res.status(500).send("Error al registrar el usuario.");
-    }
-    res.status(201).send("Usuario registrado exitosamente.");
-  });
+  if (pass) {
+    // Insertar el usuario en la base de datos
+    const query = `INSERT INTO users (username, user_pass) VALUES (?, ?)`;
+    db.query(query, [user, pass], (err: any) => {
+      if (err) {
+        return res.status(500).send("Error al registrar el usuario.");
+      }
+      res.status(201).send("Usuario registrado exitosamente.");
+    });
+  } else {
+    // Insertar el usuario en la base de datos
+    const query = `INSERT INTO users (username) VALUES (?)`;
+    db.query(query, [email], (err: any) => {
+      if (err) {
+        return res.status(500).send("Error al registrar el usuario.");
+      }
+      res.status(201).send("Usuario registrado exitosamente.");
+    });
+  }
 });
 
 app.post("/api/login", (req: Request, res: Response) => {
-  const { email } = req.body;
+  const { email, user, pass } = req.body;
 
   // Buscar el usuario en la base de datos
-  const query = `SELECT * FROM users WHERE username = ?`;
-  db.query(query, [email], async (err: any, results: any) => {
-    if (err || results.length === 0) {
-      return res.status(401).send("Usuario o contraseña incorrectos.");
-    }
+ 
+  if(email){
+    const query = `SELECT * FROM users WHERE username = ?`;
+    db.query(query, [email], async (err: any, results: any) => {
+      if (err || results.length === 0) {
+        return res.status(401).send("Usuario o contraseña incorrectos.");
+      }
+  
+      const user = results[0];
+  
+      // Generar el token JWT
+      const token = jwt.sign(
+        { id: user.id, username: user.username },
+        process.env.JWT_SECRET!,
+        { expiresIn: "1h" }
+      );
+  
+      res.status(200).json({ token });
+    });
+  }else{
+    const query = `SELECT * FROM users WHERE username = ? AND user_pass = ?`;
+    db.query(query, [user, pass], async (err: any, results: any) => {
+      if (err || results.length === 0) {
+        return res.status(401).send("Usuario o contraseña incorrectos.");
+      }
+  
+      const user = results[0];
+  
+      // Generar el token JWT
+      const token = jwt.sign(
+        { id: user.id, username: user.username },
+        process.env.JWT_SECRET!,
+        { expiresIn: "1h" }
+      );
+  
+      res.status(200).json({ token });
+    });
+  }
 
-    const user = results[0];
-
-    // Generar el token JWT
-    const token = jwt.sign(
-      { id: user.id, username: user.username },
-      process.env.JWT_SECRET!,
-      { expiresIn: "1h" }
-    );
-
-    res.status(200).json({ token });
-  });
 });
 
 // Ruta para almacenar la llave pública en la base de datos
