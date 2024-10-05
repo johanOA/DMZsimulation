@@ -9,6 +9,7 @@ interface LoginProps {
 export const Login = ({ setUserCredential }: LoginProps) => {
   const navigate = useNavigate();
 
+  console.log(window.location.origin);
   const registerUser = async (userInfo: any) => {
     try {
       const email = userInfo.email;
