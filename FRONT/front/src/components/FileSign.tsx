@@ -195,8 +195,6 @@ export const FileSign = ({ userCredential }: FileSignProps) => {
     if (selectedHash) {
       try {
         let privateKey = await fetchPrivateKey(); // Obtener la clave privada
-
-        console.log(userCredential?.accessToken);
         const response = await fetch("http://localhost:4000/api/sign", {
           method: "POST",
           headers: {
@@ -238,7 +236,6 @@ export const FileSign = ({ userCredential }: FileSignProps) => {
           }),
         });
         const result = await response.json();
-        console.log(result);
         if (result.message === "Hash o clave pública no proporcionados.") {
           toast.warning(result.message);
         }
@@ -269,9 +266,15 @@ export const FileSign = ({ userCredential }: FileSignProps) => {
           <div className="flex gap-3 font-semibold text-lg">
             <Link
               className="hover:text-indigo-600 transition-colors"
+              to={"/mis-compartidos"}
+            >
+              Mis compartidos
+            </Link>
+            <Link
+              className="hover:text-indigo-600 transition-colors"
               to={"/file-sign"}
             >
-              Firmar archivos
+              Mis archivos
             </Link>
             <Link
               className="hover:text-indigo-600 transition-colors"
@@ -284,7 +287,9 @@ export const FileSign = ({ userCredential }: FileSignProps) => {
       </div>
       <section className="w-full mt-10">
         <div>
-          <h2 className="text-center mb-5 text-xl font-semibold">Lista de archivos</h2>
+          <h2 className="text-center mb-5 text-xl font-semibold">
+            Lista de archivos
+          </h2>
           <div className="flex gap-5 mx-auto w-1/2 justify-center">
             {files.map((file, index) => (
               <div
@@ -346,7 +351,9 @@ export const FileSign = ({ userCredential }: FileSignProps) => {
         </div>
       </section>
       <section className="mt-8">
-        <h2 className="text-center text-xl font-semibold">Llave pública para verificación:</h2>
+        <h2 className="text-center text-xl font-semibold">
+          Llave pública para verificación:
+        </h2>
         <textarea
           className="border-2 rounded-md mx-auto block w-[700px] h-40 mt-5 resize-none text-black"
           name="public_key"

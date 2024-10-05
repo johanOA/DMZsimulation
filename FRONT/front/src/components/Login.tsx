@@ -1,21 +1,29 @@
 import { GoogleLogin } from "@react-oauth/google";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { UserCredential } from "../App";
+import { useState } from "react";
+import { toast, ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 interface LoginProps {
-  setUserCredential: React.Dispatch<React.SetStateAction<UserCredential | undefined>>;
+  setUserCredential: React.Dispatch<
+    React.SetStateAction<UserCredential | undefined>
+  >;
 }
 
 export const Login = ({ setUserCredential }: LoginProps) => {
   const navigate = useNavigate();
 
+  const [user, setUser] = useState("");
+  const [pass, setPass] = useState("");
+
   const registerUser = async (userInfo: any) => {
     try {
       const email = userInfo.email;
-      const response = await fetch('http://localhost:4000/api/register', {
-        method: 'POST',
+      const response = await fetch("http://localhost:4000/api/register", {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify({
           email, // ID único del usuario
@@ -24,11 +32,11 @@ export const Login = ({ setUserCredential }: LoginProps) => {
       });
 
       if (!response.ok) {
-        throw new Error('Error al registrar el usuario');
+        throw new Error("Error al registrar el usuario");
       }
 
       const data = await response.json();
-      console.log('Usuario registrado:', data);
+      console.log("Usuario registrado:", data);
     } catch (error) {
       console.error(error);
     }
@@ -37,10 +45,10 @@ export const Login = ({ setUserCredential }: LoginProps) => {
   const loginUser = async (userInfo: any) => {
     try {
       const email = userInfo.email;
-      const response = await fetch('http://localhost:4000/api/login', {
-        method: 'POST',
+      const response = await fetch("http://localhost:4000/api/login", {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify({
           email, // ID único del usuario o nombre de usuario
@@ -49,7 +57,7 @@ export const Login = ({ setUserCredential }: LoginProps) => {
       });
 
       if (!response.ok) {
-        throw new Error('Error al iniciar sesión');
+        throw new Error("Error al iniciar sesión");
       }
 
       const data = await response.json();
@@ -64,11 +72,89 @@ export const Login = ({ setUserCredential }: LoginProps) => {
     }
   };
 
+  const handleSubmitLogin = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    try {
+      const response = await fetch("http://localhost:4000/api/login", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          user,
+          pass 
+        }),
+      });
+
+      if (!response.ok) {
+        toast.error("Credenciales incorrectas")
+        throw new Error("Error al iniciar sesión");
+      }
+
+      const data = await response.json();
+      setUserCredential({
+        id: user,
+        accessToken: data.token, // Guardar el token JWT
+      });
+
+      navigate("/generate");
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
   return (
     <div className="pt-10">
       <h1 className="text-center text-2xl mx-auto font-semibold">
         Inicio de Sesión
       </h1>
+      <form
+        onSubmit={(e) => handleSubmitLogin(e)}
+        className="max-w-md mx-auto mt-8 p-6 bg-white shadow-md rounded-md"
+      >
+        <div className="mb-4">
+          <label
+            htmlFor="username"
+            className="block text-gray-700 font-semibold mb-2"
+          >
+            Nombre de usuario
+          </label>
+          <input
+            id="username"
+            type="text"
+            onChange={(e) => setUser(e.target.value)}
+            value={user}
+            className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+          />
+        </div>
+        <div className="mb-6">
+          <label
+            htmlFor="password"
+            className="block text-gray-700 font-semibold mb-2"
+          >
+            Contraseña
+          </label>
+          <input
+            id="password"
+            type="password"
+            className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            onChange={(e) => setPass(e.target.value)}
+            value={pass}
+          />
+        </div>
+        <input
+          type="submit"
+          value="Iniciar Sesión"
+          className="w-full cursor-pointer bg-blue-500 text-white p-2 rounded-md font-semibold hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50"
+        />
+        <Link
+          className="mt-5 hover:underline block text-indigo-700 font-semibold"
+          to={"/register"}
+        >
+          Registrarme
+        </Link>
+      </form>
+
       <div className="w-full flex justify-center mt-5">
         <GoogleLogin
           onSuccess={async (credentialResponse) => {
@@ -86,6 +172,7 @@ export const Login = ({ setUserCredential }: LoginProps) => {
           }}
         />
       </div>
+      <ToastContainer pauseOnHover={false} />
     </div>
   );
 };

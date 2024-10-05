@@ -179,9 +179,15 @@ export const GenerateKeys = ({
           <div className="flex gap-3 font-semibold text-lg">
             <Link
               className="hover:text-indigo-600 transition-colors"
+              to={"/mis-compartidos"}
+            >
+              Mis compartidos
+            </Link>
+            <Link
+              className="hover:text-indigo-600 transition-colors"
               to={"/file-sign"}
             >
-              Firmar archivos
+              Mis archivos
             </Link>
             <Link
               className="hover:text-indigo-600 transition-colors"

@@ -6,7 +6,8 @@ DROP TABLE IF EXISTS public_KEY;
 -- Crear tabla users
 CREATE TABLE users (
   id INT AUTO_INCREMENT PRIMARY KEY,
-  username VARCHAR(255) NOT NULL UNIQUE
+  username VARCHAR(255) NOT NULL UNIQUE,
+  user_pass VARCHAR(255)
 );
 
 -- Crear tabla public_KEY
@@ -19,12 +20,22 @@ CREATE TABLE public_KEY (
 -- Crear tabla archivos_subidos
 CREATE TABLE archivos_subidos (
     id INT AUTO_INCREMENT PRIMARY KEY,           -- ID único del archivo
+    alias VARCHAR(255) NOT NULL,                 -- Email del usuario que sube el archivo
+    llave_usuario_comparte VARCHAR(255),         -- Llave del usuario que comparte
     nombre_archivo VARCHAR(255) NOT NULL,        -- Nombre del archivo
     tamano INT NOT NULL,                         -- Tamaño del archivo en bytes
     tipo_contenido VARCHAR(50) NOT NULL,         -- Tipo MIME del archivo (por ejemplo, 'application/pdf')
     archivo LONGBLOB NOT NULL,                   -- Contenido del archivo almacenado como un BLOB
     hash_archivo VARCHAR(255) NOT NULL,          -- Hash del archivo (usar 64 caracteres para SHA-256)
     fecha_creacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP -- Fecha de creación del registro
+);
+
+-- Crear tabla llaves_usuario
+CREATE TABLE llaves_usuario (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  alias_emisor VARCHAR(255) NOT NULL,           -- Email del emisor
+  alias_receptor VARCHAR(255) NOT NULL,         -- Email del receptor
+  llave_publica VARCHAR(255) NOT NULL
 );
 
 -- Crear tabla archivos_firmados

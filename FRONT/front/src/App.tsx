@@ -4,6 +4,8 @@ import { Login } from "./components/Login";
 import { GoogleOAuthProvider } from "@react-oauth/google";
 import { useState } from "react";
 import { FileSign } from "./components/FileSign";
+import { SharedFiles } from "./components/SharedFiles";
+import { Register } from "./components/Register";
 
 export interface UserCredential {
   id: string; // o sub
@@ -22,6 +24,8 @@ function App() {
           <Route path="/" element={<Login setUserCredential={setUserCredential} />} />
           <Route path="/generate" element={<GenerateKeys userCredential={userCredential} setGlobalPublicKey={setGlobalPublicKey} />} />
           <Route path="/file-sign" element={<FileSign userCredential={userCredential} globalPublicKey={globalPublicKey} />} />
+          <Route path="/mis-compartidos" element={<SharedFiles userCredential={userCredential} />} />
+          <Route path="/register" element={<Register />} />
         </Routes>
       </BrowserRouter>
     </GoogleOAuthProvider>
