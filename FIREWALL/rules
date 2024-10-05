@@ -33,7 +33,7 @@ DNS(ACCEPT)     loc         $FW
 #ACTION         SOURCE      DEST            PROTO   DPORT       SPORT      ORIGDEST     PUBLIC IPv4
 #DNAT            net         loc:10.18.0.15  udp     53          -          121.0.0.1
 #DNAT            net         loc:10.18.0.15  tcp     53,80,81    -          121.0.0.1
-DNAT            net         loc:10.0.10.11  tcp     5173,80,81         -          172.168.10.10
-DNAT            net         loc:10.0.10.11  tcp     5173,80,81         -          10.0.10.10
+DNAT            net         loc:10.0.10.11  tcp     5173,4000,80,81         -          172.168.10.10
+DNAT            net         loc:10.0.10.11  tcp     5173,4000,80,81         -          10.0.10.10
 ACCEPT          loc         net             tcp     22,80,443
 DROP            net         all             tcp     135,139

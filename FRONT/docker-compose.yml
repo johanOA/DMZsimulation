@@ -4,8 +4,7 @@ services:
       dockerfile: dockerfile
     container_name: front
     ports:
-      - "4000:4000"
-      - "15173:5173"
+      - "5173:5173"
     cap_add:
       - NET_ADMIN
     tty: true
@@ -14,8 +13,8 @@ services:
     networks:
       net_internal:
         ipv4_address: 10.0.10.11  # Dirección IP en la red interna
-    entrypoint: /bin/bash -c "tail -f /dev/null"
-    #entrypoint: /bin/bash -c "/FRONT/config.sh && tail -f /dev/null"aa
+   #entrypoint: /bin/bash -c "tail -f /dev/null"
+    entrypoint: /bin/bash -c "/FRONT/config.sh && tail -f /dev/null"
 networks: 
   net_internal:
     external: true

@@ -5,6 +5,7 @@ services:
     container_name: firewall_debian
     ports:
       - "15173:5173"
+      - "4000:4000"
     cap_add:
       - NET_ADMIN
     privileged: true

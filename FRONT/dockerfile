@@ -27,9 +27,9 @@ WORKDIR /FRONT/front
 RUN npm install
 
 #Copia es script para las configuraciones
-#COPY config.sh /FRONT/
+COPY config.sh /FRONT/
 
 #Le da permisos para ejecutarse
-#RUN chmod +x /FRONT/config.sh
+RUN chmod +x /FRONT/config.sh
 
 EXPOSE 5173
