@@ -7,6 +7,7 @@ import crypto from "crypto";
 import bcrypt from "bcryptjs"; // Para cifrar contraseñas
 import jwt from "jsonwebtoken"; // Para generar y verificar tokens
 import dotenv from "dotenv";
+import cookieParser from "cookie-parser";
 
 declare global {
   namespace Express {
@@ -38,6 +39,7 @@ dotenv.config(); // Cargar las variables de entorno
 const app = express();
 const PORT = process.env.PORT || 4000;
 
+
 // Configuración de CORS
 const corsOptions: CorsOptions = {
   origin: "http://localhost:5173", // Permite solo solicitudes desde localhost:5173
@@ -50,6 +52,8 @@ app.use(cors(corsOptions));
 
 // Middleware para manejar JSON
 app.use(express.json());
+
+app.use(cookieParser());
 
 // Configuración de multer para manejar archivos
 const storage = multer.memoryStorage(); // Almacenamos el archivo en memoria
@@ -110,17 +114,17 @@ app.post("/api/login", (req: Request, res: Response) => {
     }
 
     const user = results[0];
-
     // Generar el token JWT
     const token = jwt.sign(
       { id: user.id, username: user.username },
       process.env.JWT_SECRET!,
-      { expiresIn: "1h" }
+      { expiresIn: "1h", algorithm: "HS256", jwtid: user.id + user.username }
     );
 
     res.status(200).json({ token });
   });
 });
+
 
 // Ruta para almacenar la llave pública en la base de datos
 app.post("/api/storePublicKey", (req: Request, res: Response) => {
