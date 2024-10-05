@@ -5,7 +5,7 @@ DROP TABLE IF EXISTS public_KEY;
 
 CREATE TABLE users (
   id INT AUTO_INCREMENT PRIMARY KEY,
-  username VARCHAR(255) NOT NULL UNIQUE,
+  username VARCHAR(255) NOT NULL UNIQUE
 );
 
 -- Crear tabla public_KEY
