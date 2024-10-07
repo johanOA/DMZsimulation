@@ -27,7 +27,8 @@ CREATE TABLE archivos_subidos (
     tipo_contenido VARCHAR(50) NOT NULL,         -- Tipo MIME del archivo (por ejemplo, 'application/pdf')
     archivo LONGBLOB NOT NULL,                   -- Contenido del archivo almacenado como un BLOB
     hash_archivo VARCHAR(255) NOT NULL,          -- Hash del archivo (usar 64 caracteres para SHA-256)
-    fecha_creacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP -- Fecha de creación del registro
+    fecha_creacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP, -- Fecha de creación del registro
+    es_compartido TINYINT(1) DEFAULT 0  -- Campo booleano, por defecto FALSE
 );
 
 -- Crear tabla llaves_usuario
