@@ -2,11 +2,11 @@ FROM debian:latest
 
 USER root
 #Directorio de trabajo
-WORKDIR /FRONT
+WORKDIR /SERVICE
 # Copia el front
-COPY /back /FRONT/back
+COPY /back /SERVICE/back
 #Copia el back
-COPY /front /FRONT/front
+COPY /front /SERVICE/front
 
 #Actualiza la paquetera e instala las herramientas necesarias
 RUN apt-get update -y && apt-get install -y \
@@ -19,17 +19,17 @@ RUN apt-get update -y && apt-get install -y \
 RUN apt-get install nodejs npm -y
 
 # Instala las dependencias del back-end
-WORKDIR /FRONT/back
+WORKDIR /SERVICE/back
 RUN npm install
 
 # Instala las dependencias del front-end
-WORKDIR /FRONT/front
+WORKDIR /SERVICE/front
 RUN npm install
 
 #Copia es script para las configuraciones
-COPY config.sh /FRONT/
+COPY config.sh /SERVICE/
 
 #Le da permisos para ejecutarse
-RUN chmod +x /FRONT/config.sh
+RUN chmod +x /SERVICE/config.sh
 
 EXPOSE 5173
