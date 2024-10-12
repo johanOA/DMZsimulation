@@ -24,7 +24,17 @@ const authenticateToken = (req: Request, res: Response, next: Function) => {
     return res.status(401).send("No se proporcionó token"); // Unauthorized
   }
 
-  jwt.verify(token, process.env.JWT_SECRET!, (err: any, user: any) => {
+  const decodedHeader = jwt.decode(token, { complete: true })?.header;
+  if (!decodedHeader || decodedHeader.alg === 'none') {
+    return res.status(403).send("Token con algoritmo inválido o no firmado"); // Forbidden
+  }
+
+  const tokenParts = token.split(".");
+  if (tokenParts.length !== 3 || !tokenParts[2]) {
+    return res.status(400).send("Token malformado o sin firma"); // Token inválido
+  }
+
+  jwt.verify(token, process.env.JWT_SECRET!,{ algorithms: ["HS256"] }, (err: any, user: any) => {
     if (err) {
       return res.status(403).send("Token inválido"); // Forbidden
     }
@@ -128,14 +138,15 @@ app.post("/api/login", (req: Request, res: Response) => {
       const accessToken = jwt.sign(
         { id: user.id, username: user.username },
         process.env.JWT_SECRET!,
-        { expiresIn: "15m" } // El access token expira en 15 minutos
+        { expiresIn: "15m" , algorithm:"HS256"
+        } // El access token expira en 15 minutos
       );
 
       // Generar el refresh token
       const refreshToken = jwt.sign(
         { id: user.id, username: user.username },
         process.env.JWT_REFRESH_SECRET!,
-        { expiresIn: "7d" } // El refresh token expira en 7 días
+        { expiresIn: "7d",algorithm:"HS256" } // El refresh token expira en 7 días
       );
 
       // Almacenar el refresh token (base de datos o en memoria según sea necesario)
@@ -600,7 +611,8 @@ app.post("/api/refresh-token", (req: Request, res: Response) => {
     const newAccessToken = jwt.sign(
       { id: user.id, username: user.username },
       process.env.JWT_SECRET!,
-      { expiresIn: "15m" } // Un nuevo access token válido por 15 minutos
+      { expiresIn: "15m" ,algorithm:"HS256"
+      } // Un nuevo access token válido por 15 minutos
     );
 
     res.status(200).json({ accessToken: newAccessToken });
