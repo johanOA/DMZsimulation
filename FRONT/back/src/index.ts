@@ -99,31 +99,37 @@ app.get("/", (req: Request, res: Response) => {
 app.post("/api/register", async (req: Request, res: Response) => {
   const { email, user, pass } = req.body;
 
-  if (pass) {
-    // Insertar el usuario en la base de datos
-    const query = `INSERT INTO users (username, user_pass) VALUES (?, ?)`;
-    db.query(query, [user, pass], (err: any) => {
-      if (err) {
-        return res.status(500).send("Error al registrar el usuario.");
-      }
-      res.status(201).send("Usuario registrado exitosamente.");
-    });
-  } else {
-    // Insertar el usuario en la base de datos
-    const query = `INSERT INTO users (username) VALUES (?)`;
-    db.query(query, [email], (err: any) => {
-      if (err) {
-        return res.status(500).send("Error al registrar el usuario.");
-      }
-      res.status(201).send("Usuario registrado exitosamente.");
-    });
+  try {
+    if (pass) {
+      // Hashear la contraseña
+      const saltRounds = 10;
+      const hashedPassword = await bcrypt.hash(pass, saltRounds);
+
+      // Insertar el usuario con la contraseña hasheada
+      const query = `INSERT INTO users (username, user_pass) VALUES (?, ?)`;
+      db.query(query, [user, hashedPassword], (err: any) => {
+        if (err) {
+          return res.status(500).send("Error al registrar el usuario.");
+        }
+        res.status(201).send("Usuario registrado exitosamente.");
+      });
+    } else {
+      // Insertar el usuario sin contraseña (solo con email)
+      const query = `INSERT INTO users (username) VALUES (?)`;
+      db.query(query, [email], (err: any) => {
+        if (err) {
+          return res.status(500).send("Error al registrar el usuario.");
+        }
+        res.status(201).send("Usuario registrado exitosamente.");
+      });
+    }
+  } catch (error) {
+    res.status(500).send("Error al procesar la solicitud.");
   }
 });
 
 app.post("/api/login", (req: Request, res: Response) => {
   const { email, user, pass } = req.body;
-
-  // Buscar el usuario en la base de datos
 
   if (email) {
     const query = `SELECT * FROM users WHERE username = ?`;
@@ -138,15 +144,14 @@ app.post("/api/login", (req: Request, res: Response) => {
       const accessToken = jwt.sign(
         { id: user.id, username: user.username },
         process.env.JWT_SECRET!,
-        { expiresIn: "15m" , algorithm:"HS256"
-        } // El access token expira en 15 minutos
+        { expiresIn: "15m", algorithm: "HS256" } // El access token expira en 15 minutos
       );
 
       // Generar el refresh token
       const refreshToken = jwt.sign(
         { id: user.id, username: user.username },
         process.env.JWT_REFRESH_SECRET!,
-        { expiresIn: "7d",algorithm:"HS256" } // El refresh token expira en 7 días
+        { expiresIn: "7d", algorithm: "HS256" } // El refresh token expira en 7 días
       );
 
       // Almacenar el refresh token (base de datos o en memoria según sea necesario)
@@ -157,13 +162,19 @@ app.post("/api/login", (req: Request, res: Response) => {
       });
     });
   } else {
-    const query = `SELECT * FROM users WHERE username = ? AND user_pass = ?`;
-    db.query(query, [user, pass], async (err: any, results: any) => {
+    const query = `SELECT * FROM users WHERE username = ?`;
+    db.query(query, [user], async (err: any, results: any) => {
       if (err || results.length === 0) {
         return res.status(401).send("Usuario o contraseña incorrectos.");
       }
 
       const user = results[0];
+
+      // Comparar la contraseña proporcionada con la contraseña hasheada
+      const isMatch = await bcrypt.compare(pass, user.user_pass);
+      if (!isMatch) {
+        return res.status(401).send("Usuario o contraseña incorrectos.");
+      }
 
       // Generar el access token
       const accessToken = jwt.sign(
