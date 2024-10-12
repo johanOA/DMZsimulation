@@ -4,6 +4,7 @@ import { UserCredential } from "../App";
 import { useState } from "react";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import Cookies from 'js-cookie';
 
 interface LoginProps {
   setUserCredential: React.Dispatch<
@@ -45,28 +46,37 @@ export const Login = ({ setUserCredential }: LoginProps) => {
   const loginUser = async (userInfo: any) => {
     try {
       const email = userInfo.email;
+  
       const response = await fetch("http://localhost:4000/api/login", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          email, // ID único del usuario o nombre de usuario
-          // Aquí puedes agregar más campos como email o nombre si es necesario
+          email, // Enviar el email como ID único para identificar al usuario
+          // Aquí puedes agregar otros campos si es necesario
         }),
       });
-
+  
       if (!response.ok) {
         throw new Error("Error al iniciar sesión");
       }
-
+  
       const data = await response.json();
+  
+      // Guardar el access token y refresh token en cookies
+      Cookies.set("accessToken", data.accessToken, { expires: 1 / 24 }); // Expira en 15 minutos
+      Cookies.set("refreshToken", data.refreshToken, { expires: 7 }); // Expira en 7 días
+  
+      // Almacenar las credenciales del usuario con el accessToken
       setUserCredential({
-        id: userInfo.sub,
-        accessToken: data.token, // Guardar el token JWT
+        id: email,
+        accessToken: data.accessToken, // Guardar el access token JWT
       });
-
+  
+      // Redirigir al usuario a la página de "generate"
       navigate("/generate");
+  
     } catch (error) {
       console.error(error);
     }
@@ -74,6 +84,7 @@ export const Login = ({ setUserCredential }: LoginProps) => {
 
   const handleSubmitLogin = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    
     try {
       const response = await fetch("http://localhost:4000/api/login", {
         method: "POST",
@@ -81,23 +92,31 @@ export const Login = ({ setUserCredential }: LoginProps) => {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          user,
-          pass 
+          user, // Se envía el usuario y contraseña como en tu código original
+          pass
         }),
       });
-
+  
       if (!response.ok) {
-        toast.error("Credenciales incorrectas")
+        toast.error("Credenciales incorrectas");
         throw new Error("Error al iniciar sesión");
       }
-
+  
       const data = await response.json();
+  
+      // Guardar el access token y refresh token en cookies
+      Cookies.set("accessToken", data.accessToken, { expires: 1 / 24 }); // El access token expira en 15 minutos (1/24 días)
+      Cookies.set("refreshToken", data.refreshToken, { expires: 7 }); // El refresh token expira en 7 días
+  
+      // Almacenar las credenciales del usuario con el accessToken
       setUserCredential({
         id: user,
-        accessToken: data.token, // Guardar el token JWT
+        accessToken: data.accessToken, // Guardar el access token JWT
       });
-
+  
+      // Redirigir al usuario a la página de "generate" después de iniciar sesión
       navigate("/generate");
+      
     } catch (error) {
       console.error(error);
     }

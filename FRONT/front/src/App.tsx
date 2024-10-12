@@ -24,7 +24,7 @@ function App() {
           <Route path="/" element={<Login setUserCredential={setUserCredential} />} />
           <Route path="/generate" element={<GenerateKeys userCredential={userCredential} setGlobalPublicKey={setGlobalPublicKey} />} />
           <Route path="/file-sign" element={<FileSign userCredential={userCredential} globalPublicKey={globalPublicKey} />} />
-          <Route path="/mis-compartidos" element={<SharedFiles userCredential={userCredential} />} />
+          <Route path="/mis-compartidos" element={<SharedFiles userCredential={userCredential} globalPublicKey={globalPublicKey} />} />
           <Route path="/register" element={<Register />} />
         </Routes>
       </BrowserRouter>

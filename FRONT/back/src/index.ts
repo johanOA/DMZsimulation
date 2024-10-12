@@ -25,7 +25,17 @@ const authenticateToken = (req: Request, res: Response, next: Function) => {
     return res.status(401).send("No se proporcionó token"); // Unauthorized
   }
 
-  jwt.verify(token, process.env.JWT_SECRET!, (err: any, user: any) => {
+  const decodedHeader = jwt.decode(token, { complete: true })?.header;
+  if (!decodedHeader || decodedHeader.alg === 'none') {
+    return res.status(403).send("Token con algoritmo inválido o no firmado"); // Forbidden
+  }
+
+  const tokenParts = token.split(".");
+  if (tokenParts.length !== 3 || !tokenParts[2]) {
+    return res.status(400).send("Token malformado o sin firma"); // Token inválido
+  }
+
+  jwt.verify(token, process.env.JWT_SECRET!,{ algorithms: ["HS256"] }, (err: any, user: any) => {
     if (err) {
       return res.status(403).send("Token inválido"); // Forbidden
     }
@@ -118,45 +128,69 @@ app.post("/api/login", (req: Request, res: Response) => {
   const { email, user, pass } = req.body;
 
   // Buscar el usuario en la base de datos
- 
-  if(email){
+
+  if (email) {
     const query = `SELECT * FROM users WHERE username = ?`;
     db.query(query, [email], async (err: any, results: any) => {
       if (err || results.length === 0) {
         return res.status(401).send("Usuario o contraseña incorrectos.");
       }
-  
+
       const user = results[0];
-  
-      // Generar el token JWT
-      const token = jwt.sign(
+
+      // Generar el access token
+      const accessToken = jwt.sign(
         { id: user.id, username: user.username },
         process.env.JWT_SECRET!,
-        { expiresIn: "1h" , algorithm: "HS256", jwtid: user.id+user.username}
+        { expiresIn: "15m" , algorithm:"HS256"
+        } // El access token expira en 15 minutos
       );
-  
-      res.status(200).json({ token });
+
+      // Generar el refresh token
+      const refreshToken = jwt.sign(
+        { id: user.id, username: user.username },
+        process.env.JWT_REFRESH_SECRET!,
+        { expiresIn: "7d",algorithm:"HS256" } // El refresh token expira en 7 días
+      );
+
+      // Almacenar el refresh token (base de datos o en memoria según sea necesario)
+
+      res.status(200).json({
+        accessToken,
+        refreshToken,
+      });
     });
-  }else{
+  } else {
     const query = `SELECT * FROM users WHERE username = ? AND user_pass = ?`;
     db.query(query, [user, pass], async (err: any, results: any) => {
       if (err || results.length === 0) {
         return res.status(401).send("Usuario o contraseña incorrectos.");
       }
-  
+
       const user = results[0];
-  
-      // Generar el token JWT
-      const token = jwt.sign(
+
+      // Generar el access token
+      const accessToken = jwt.sign(
         { id: user.id, username: user.username },
         process.env.JWT_SECRET!,
-        { expiresIn: "1h" }
+        { expiresIn: "15m" } // El access token expira en 15 minutos
       );
-  
-      res.status(200).json({ token });
+
+      // Generar el refresh token
+      const refreshToken = jwt.sign(
+        { id: user.id, username: user.username },
+        process.env.JWT_REFRESH_SECRET!,
+        { expiresIn: "7d" } // El refresh token expira en 7 días
+      );
+
+      // Almacenar el refresh token (base de datos o en memoria según sea necesario)
+
+      res.status(200).json({
+        accessToken,
+        refreshToken,
+      });
     });
   }
-
 });
 
 
@@ -164,13 +198,35 @@ app.post("/api/login", (req: Request, res: Response) => {
 app.post("/api/storePublicKey", (req: Request, res: Response) => {
   const { publicKey, alias } = req.body;
 
-  const query = `INSERT INTO public_KEY (alias, key_value) VALUES (?, ?)`;
-  db.query(query, [alias, publicKey], (err: any, result: any) => {
+  // Primero, verifica si ya existe una llave pública asociada al alias
+  const checkQuery = `SELECT * FROM public_KEY WHERE alias = ?`;
+  db.query(checkQuery, [alias], (err: any, result: any) => {
     if (err) {
-      console.error("Error al almacenar la llave pública:", err);
-      return res.status(500).send("Error al almacenar la llave pública.");
+      console.error("Error al verificar el alias:", err);
+      return res.status(500).send("Error al verificar el alias.");
     }
-    res.status(200).send("Llave pública almacenada exitosamente.");
+
+    if (result.length > 0) {
+      // Si ya existe una llave asociada al alias, actualiza la llave pública
+      const updateQuery = `UPDATE public_KEY SET key_value = ? WHERE alias = ?`;
+      db.query(updateQuery, [publicKey, alias], (updateErr: any) => {
+        if (updateErr) {
+          console.error("Error al actualizar la llave pública:", updateErr);
+          return res.status(500).send("Error al actualizar la llave pública.");
+        }
+        res.status(200).send("Llave pública actualizada exitosamente.");
+      });
+    } else {
+      // Si no existe, inserta una nueva llave pública
+      const insertQuery = `INSERT INTO public_KEY (alias, key_value) VALUES (?, ?)`;
+      db.query(insertQuery, [alias, publicKey], (insertErr: any) => {
+        if (insertErr) {
+          console.error("Error al almacenar la llave pública:", insertErr);
+          return res.status(500).send("Error al almacenar la llave pública.");
+        }
+        res.status(200).send("Llave pública almacenada exitosamente.");
+      });
+    }
   });
 });
 
@@ -179,7 +235,8 @@ app.post(
   "/api/upload",
   upload.single("archivo"),
   (req: Request, res: Response) => {
-    const { nombre_archivo, tamano, tipo_contenido, hash_archivo } = req.body; // Extraemos los metadatos del archivo, incluyendo el hash
+    const { nombre_archivo, tamano, tipo_contenido, hash_archivo, alias } =
+      req.body; // Extraemos los metadatos del archivo, incluyendo el hash
     const fileBuffer = req.file?.buffer; // Obtenemos el buffer del archivo desde req.file
 
     if (!fileBuffer || fileBuffer.length === 0) {
@@ -188,13 +245,13 @@ app.post(
 
     // Consulta SQL para insertar el archivo y sus metadatos en la base de datos, incluyendo el hash
     const query = `
-    INSERT INTO archivos_subidos (nombre_archivo, tamano, tipo_contenido, archivo, hash_archivo) 
-    VALUES (?, ?, ?, ?, ?)
+    INSERT INTO archivos_subidos (nombre_archivo, tamano, tipo_contenido, archivo, hash_archivo, alias) 
+    VALUES (?, ?, ?, ?, ?, ?)
   `;
 
     db.query(
       query,
-      [nombre_archivo, tamano, tipo_contenido, fileBuffer, hash_archivo],
+      [nombre_archivo, tamano, tipo_contenido, fileBuffer, hash_archivo, alias],
       (err: any, result: any) => {
         if (err) {
           console.error("Error al almacenar el archivo:", err);
@@ -210,10 +267,153 @@ app.post(
   }
 );
 
+app.post(
+  "/api/share",
+  upload.single("archivo"),
+  (req: Request, res: Response) => {
+    const {
+      nombre_archivo,
+      tamano,
+      tipo_contenido,
+      hash_archivo,
+      alias,
+      usuario_comparte,
+      llave_usuario_comparte,
+    } = req.body; // Extraemos los metadatos del archivo, incluyendo el hash
+    const fileBuffer = req.file?.buffer; // Obtenemos el buffer del archivo desde req.file
+    const es_compartido = 1;
+
+    if (!fileBuffer || fileBuffer.length === 0) {
+      return res.status(400).send("No se ha enviado ningún archivo.");
+    }
+
+    if (llave_usuario_comparte) {
+      // Consulta SQL para insertar el archivo y sus metadatos en la base de datos, incluyendo el hash
+      const query = `
+ INSERT INTO archivos_subidos (nombre_archivo, tamano, tipo_contenido, archivo, hash_archivo, alias, usuario_comparte, es_compartido, llave_usuario_comparte) 
+ VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+`;
+
+      db.query(
+        query,
+        [
+          nombre_archivo,
+          tamano,
+          tipo_contenido,
+          fileBuffer,
+          hash_archivo,
+          alias,
+          usuario_comparte,
+          es_compartido,
+          llave_usuario_comparte,
+        ],
+        (err: any, result: any) => {
+          if (err) {
+            console.error("Error al compartir el archivo:", err);
+            return res.status(500).send("Error al almacenar el archivo.");
+          }
+
+          res.status(200).json({
+            message: "Archivo compartido exitosamente",
+            fileId: result.insertId, // Retornamos el ID del archivo insertado
+          });
+        }
+      );
+    } else {
+      // Consulta SQL para insertar el archivo y sus metadatos en la base de datos, incluyendo el hash
+      const query = `
+     INSERT INTO archivos_subidos (nombre_archivo, tamano, tipo_contenido, archivo, hash_archivo, alias, usuario_comparte, es_compartido) 
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+   `;
+
+      db.query(
+        query,
+        [
+          nombre_archivo,
+          tamano,
+          tipo_contenido,
+          fileBuffer,
+          hash_archivo,
+          alias,
+          usuario_comparte,
+          es_compartido,
+        ],
+        (err: any, result: any) => {
+          if (err) {
+            console.error("Error al compartir el archivo:", err);
+            return res.status(500).send("Error al almacenar el archivo.");
+          }
+
+          res.status(200).json({
+            message: "Archivo compartido exitosamente",
+            fileId: result.insertId, // Retornamos el ID del archivo insertado
+          });
+        }
+      );
+    }
+  }
+);
+
+// Obtener usuarios
+app.get("/api/users", (req: Request, res: Response) => {
+  // Consulta SQL para obtener los usuarios
+  const query = `SELECT username FROM users`;
+
+  // Ejecutamos la consulta a la base de datos
+  db.query(query, (err: any, results: any) => {
+    if (err) {
+      console.error("Error al obtener los usuarios:", err);
+      return res.status(500).send("Error al obtener los usuarios.");
+    }
+
+    // Mapeamos los resultados para estructurarlos si es necesario
+    const usuarios = results.map((usuario: any) => {
+      return {
+        username: usuario.username,
+      };
+    });
+
+    // Respondemos con el array de usuarios en formato JSON
+    res.status(200).json({
+      message: "Usuarios obtenidos exitosamente",
+      usuarios, // Devolvemos los usuarios en el cuerpo de la respuesta
+    });
+  });
+});
+
+app.get("/api/firmas", (req: Request, res: Response) => {
+  // Consulta SQL para obtener los usuarios
+  const query = `SELECT * FROM archivos_firmados`;
+
+  // Ejecutamos la consulta a la base de datos
+  db.query(query, (err: any, results: any) => {
+    if (err) {
+      console.error("Error al obtener los usuarios:", err);
+      return res.status(500).send("Error al obtener los usuarios.");
+    }
+
+    // Mapeamos los resultados para estructurarlos si es necesario
+    const firmas = results.map((firma: any) => {
+      return {
+        alias: firma.alias,
+        nombre_archivo: firma.nombre_archivo,
+        signature: firma.signature, // Si deseas incluir más campos, añádelos aquí
+      };
+    });
+
+    // Respondemos con el array de usuarios en formato JSON
+    res.status(200).json({
+      message: "Firmas obtenidas exitosamente",
+      firmas, // Devolvemos los usuarios en el cuerpo de la respuesta
+    });
+  });
+});
+
 // Ruta para obtener archivos firmados de la base de datos, incluyendo el contenido
-app.get("/api/archivos", (req: Request, res: Response) => {
+app.post("/api/archivos", (req: Request, res: Response) => {
+  const { alias } = req.body;
   // Consulta SQL para obtener todos los archivos firmados
-  const query = `SELECT id, nombre_archivo, tamano, tipo_contenido, archivo, hash_archivo FROM archivos_subidos`;
+  const query = `SELECT * FROM archivos_subidos WHERE alias = '${alias}'`;
 
   db.query(query, (err: any, results: any) => {
     if (err) {
@@ -230,6 +430,10 @@ app.get("/api/archivos", (req: Request, res: Response) => {
         tipo_contenido: archivo.tipo_contenido,
         contenido: archivo.archivo.toString("base64"), // Convertimos el BLOB a base64 para enviarlo
         hash: archivo.hash_archivo,
+        es_compartido: archivo.es_compartido,
+        llave_usuario_comparte: archivo.llave_usuario_comparte,
+        alias: archivo.alias,
+        usuario_comparte: archivo.usuario_comparte,
       };
     });
 
@@ -355,8 +559,8 @@ app.post(
 
     try {
       // Obtener la firma almacenada en la base de datos
-      const query = `SELECT signature FROM archivos_firmados WHERE nombre_archivo = ?`;
-      db.query(query, [nombre_archivo], (err: any, result: any) => {
+      const query = `SELECT signature FROM archivos_firmados WHERE nombre_archivo = ? AND alias = ?`;
+      db.query(query, [nombre_archivo, alias], (err: any, result: any) => {
         if (err || result.length === 0) {
           return res
             .status(404)
@@ -394,6 +598,32 @@ app.post(
     }
   }
 );
+
+app.post("/api/refresh-token", (req: Request, res: Response) => {
+  const { refreshToken } = req.body;
+
+  if (!refreshToken) {
+    return res.status(403).json({ message: "Refresh token requerido" });
+  }
+
+  // Verificar el refresh token
+  jwt.verify(refreshToken, process.env.JWT_REFRESH_SECRET!, (err: any, user: any) => {
+    if (err) {
+      return res.status(403).json({ message: "Refresh token no válido" });
+    }
+
+    // Generar un nuevo access token
+    const newAccessToken = jwt.sign(
+      { id: user.id, username: user.username },
+      process.env.JWT_SECRET!,
+      { expiresIn: "15m" ,algorithm:"HS256"
+      } // Un nuevo access token válido por 15 minutos
+    );
+
+    res.status(200).json({ accessToken: newAccessToken });
+  });
+});
+
 
 // Iniciar el servidor
 app.listen(PORT, () => {
