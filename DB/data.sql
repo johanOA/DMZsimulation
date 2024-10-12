@@ -3,33 +3,41 @@ USE userdb;
 -- Eliminar tablas si existen
 DROP TABLE IF EXISTS public_KEY;
 
--- Crear tabla users
-CREATE TABLE users (
-  id INT AUTO_INCREMENT PRIMARY KEY,
-  username VARCHAR(255) NOT NULL UNIQUE,
-  user_pass VARCHAR(255)
-);
+-- userdb.users definition
 
--- Crear tabla public_KEY
-CREATE TABLE public_KEY (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    alias VARCHAR(255) NOT NULL,
-    key_value LONGTEXT NOT NULL
-);
+CREATE TABLE `users` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `username` varchar(255) NOT NULL,
+  `user_pass` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `username` (`username`)
+) ENGINE=InnoDB AUTO_INCREMENT=158 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
--- Crear tabla archivos_subidos
-CREATE TABLE archivos_subidos (
-    id INT AUTO_INCREMENT PRIMARY KEY,           -- ID único del archivo
-    alias VARCHAR(255) NOT NULL,                 -- Email del usuario que sube el archivo
-    llave_usuario_comparte VARCHAR(255),         -- Llave del usuario que comparte
-    nombre_archivo VARCHAR(255) NOT NULL,        -- Nombre del archivo
-    tamano INT NOT NULL,                         -- Tamaño del archivo en bytes
-    tipo_contenido VARCHAR(50) NOT NULL,         -- Tipo MIME del archivo (por ejemplo, 'application/pdf')
-    archivo LONGBLOB NOT NULL,                   -- Contenido del archivo almacenado como un BLOB
-    hash_archivo VARCHAR(255) NOT NULL,          -- Hash del archivo (usar 64 caracteres para SHA-256)
-    fecha_creacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP, -- Fecha de creación del registro
-    es_compartido TINYINT(1) DEFAULT 0  -- Campo booleano, por defecto FALSE
-);
+-- userdb.public_KEY definition
+
+CREATE TABLE `public_KEY` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `alias` varchar(255) NOT NULL,
+  `key_value` longtext NOT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB AUTO_INCREMENT=19 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+-- userdb.archivos_subidos definition
+
+CREATE TABLE `archivos_subidos` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `nombre_archivo` varchar(255) NOT NULL,
+  `tamano` int NOT NULL,
+  `tipo_contenido` varchar(50) NOT NULL,
+  `archivo` longblob NOT NULL,
+  `hash_archivo` varchar(255) NOT NULL,
+  `fecha_creacion` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  `alias` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci DEFAULT NULL,
+  `llave_usuario_comparte` longtext,
+  `es_compartido` tinyint(1) DEFAULT '0',
+  `usuario_comparte` varchar(255) DEFAULT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB AUTO_INCREMENT=51 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 -- Crear tabla llaves_usuario
 CREATE TABLE llaves_usuario (
@@ -39,14 +47,17 @@ CREATE TABLE llaves_usuario (
   llave_publica VARCHAR(255) NOT NULL
 );
 
--- Crear tabla archivos_firmados
-CREATE TABLE archivos_firmados (
-  id INT AUTO_INCREMENT PRIMARY KEY,
-  alias VARCHAR(255) NOT NULL,
-  nombre_archivo VARCHAR(255) NOT NULL, 
-  signature TEXT NOT NULL,
-  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
+-- userdb.archivos_firmados definition
+
+CREATE TABLE `archivos_firmados` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `alias` varchar(255) NOT NULL,
+  `nombre_archivo` varchar(255) NOT NULL,
+  `signature` text NOT NULL,
+  `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB AUTO_INCREMENT=16 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
 
 -- Inserciones de prueba para public_KEY
 INSERT INTO public_KEY (id, alias, key_value) VALUES 
